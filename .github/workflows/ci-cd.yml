@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write # ⬅️ nécessaire pour push sur GHCR
+      packages: write # nécessaire pour push sur GHCR
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -21,7 +21,7 @@ jobs:
           distribution: "temurin"
           java-version: "21"
 
-      - run: chmod +x mvnw # ⬅️ évite "Permission denied"
+      - run: chmod +x ./mvnw # évite "Permission denied"
       - run: ./mvnw -B -DskipTests=false test package
 
       - name: Login to GitHub Container Registry
@@ -45,7 +45,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: azure/setup-kubectl@v4
-      - run: echo "${{ secrets.KUBE_CONFIG_DEV }}" > $HOME/.kube/config
+      - run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG_DEV }}" > $HOME/.kube/config
       - run: |
           kubectl set image deployment/myapp myapp=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} -n dev
           kubectl rollout status deployment/myapp -n dev
@@ -58,7 +60,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: azure/setup-kubectl@v4
-      - run: echo "${{ secrets.KUBE_CONFIG_QUALIF }}" > $HOME/.kube/config
+      - run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG_QUALIF }}" > $HOME/.kube/config
       - run: |
           kubectl set image deployment/myapp myapp=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} -n qualif
           kubectl rollout status deployment/myapp -n qualif
@@ -71,7 +75,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: azure/setup-kubectl@v4
-      - run: echo "${{ secrets.KUBE_CONFIG_PROD }}" > $HOME/.kube/config
+      - run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG_PROD }}" > $HOME/.kube/config
       - run: |
           kubectl set image deployment/myapp myapp=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} -n production
           kubectl rollout status deployment/myapp -n production
