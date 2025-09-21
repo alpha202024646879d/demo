@@ -49,6 +49,9 @@ jobs:
           mkdir -p $HOME/.kube
           echo "${{ secrets.KUBE_CONFIG_DEV }}" > $HOME/.kube/config
       - run: |
+          # Créer le namespace si nécessaire
+          kubectl create namespace dev --dry-run=client -o yaml | kubectl apply -f -
+          # Mettre à jour le déploiement
           kubectl set image deployment/myapp myapp=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} -n dev
           kubectl rollout status deployment/myapp -n dev
 
@@ -64,6 +67,7 @@ jobs:
           mkdir -p $HOME/.kube
           echo "${{ secrets.KUBE_CONFIG_QUALIF }}" > $HOME/.kube/config
       - run: |
+          kubectl create namespace qualif --dry-run=client -o yaml | kubectl apply -f -
           kubectl set image deployment/myapp myapp=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} -n qualif
           kubectl rollout status deployment/myapp -n qualif
 
@@ -79,5 +83,6 @@ jobs:
           mkdir -p $HOME/.kube
           echo "${{ secrets.KUBE_CONFIG_PROD }}" > $HOME/.kube/config
       - run: |
+          kubectl create namespace production --dry-run=client -o yaml | kubectl apply -f -
           kubectl set image deployment/myapp myapp=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} -n production
           kubectl rollout status deployment/myapp -n production
